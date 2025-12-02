@@ -9,7 +9,7 @@ Welcome to my personal portfolio website! This project showcases my skills, proj
 ## 🚀 Live Demo
 
 Check out the live version of the portfolio here:
-**[View Portfolio](https://Abhijith-Reddy-ch.github.io/portfolio/)**
+**[View Portfolio](https://abhijith-reddy-ch.github.io/portfolio/)**
 
 ## 📖 About
 
