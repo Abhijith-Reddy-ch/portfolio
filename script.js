@@ -241,7 +241,7 @@ scrollToTopBtn.addEventListener('click', () => {
 // DOWNLOAD CV — open in new tab + download
 // ================================================
 function bindCVDownload() {
-    const link = document.querySelector('a[href="assets/cv.pdf"]');
+    const link = document.querySelector('a[href="assets/CV.pdf"]');
     if (!link) return;
 
     link.addEventListener('click', async function (e) {
