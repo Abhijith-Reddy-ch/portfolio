@@ -13,12 +13,12 @@
   --color-text-tertiary: #9ca3af;
 
   /* Brand Colors */
-  --color-accent-primary: #6366f1;
-  --color-accent-secondary: #8b5cf6;
-  --color-accent-tertiary: #ec4899;
+  --color-accent-primary: #2563eb;
+  --color-accent-secondary: #4f46e5;
+  --color-accent-tertiary: #06b6d4;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #06b6d4 100%);
 
   /* Glassmorphism */
 
@@ -51,7 +51,7 @@
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.5);
 
   /* Transitions */
   --transition-base: 0.3s ease;
