@@ -362,9 +362,11 @@ a {
 }
 
 .btn-secondary:hover {
-  background: var(--glass-border);
-  border-color: var(--color-accent-primary);
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: #ffffff;
   transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(99, 102, 241, 0.6);
 }
 
 /* ==========================================
