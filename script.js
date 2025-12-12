@@ -248,7 +248,6 @@ function bindCVDownload() {
     const links = Array.from(document.querySelectorAll('a')).filter(a => {
         const href = a.getAttribute('href') || '';
         const hasDownload = a.hasAttribute('download');
-        const endsWithCv = href.toLowerCase().endsWith('cv.pdf') || href.toLowerCase().endsWith('curriculum-vitae.pdf');
         return hasDownload || endsWithCv;
     });
 
