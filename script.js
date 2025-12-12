@@ -240,46 +240,91 @@ scrollToTopBtn.addEventListener('click', () => {
 // ================================================
 // DOWNLOAD CV — open in new tab + download
 // ================================================
+// ================================================
+// DOWNLOAD CV — open in new tab + download (robust)
+// ================================================
 function bindCVDownload() {
-    const link = document.querySelector('a[href="assets/CV.pdf"]');
-    if (!link) return;
+    // Find links that either have download attr or look like a CV PDF (case-insensitive)
+    const links = Array.from(document.querySelectorAll('a')).filter(a => {
+        const href = a.getAttribute('href') || '';
+        const hasDownload = a.hasAttribute('download');
+        const endsWithCv = href.toLowerCase().endsWith('cv.pdf') || href.toLowerCase().endsWith('curriculum-vitae.pdf');
+        return hasDownload || endsWithCv;
+    });
 
-    link.addEventListener('click', async function (e) {
-        e.preventDefault();
+    if (!links.length) return;
 
-        const url = this.href;
-        const filename = "Abhijith_Reddy_CV.pdf";
+    links.forEach(link => {
+        if (link.dataset.cvBound) return;
+        link.dataset.cvBound = 'true';
 
-        // open a blank tab early (prevents popup blocking)
-        const newTab = window.open('', '_blank');
+        link.addEventListener('click', async function (e) {
+            // allow user intent (Ctrl/Cmd/middle click) to skip custom behavior
+            if (e.ctrlKey || e.metaKey || e.button === 1) return;
 
-        try {
-            const resp = await fetch(url, { cache: "no-store" });
-            const blob = await resp.blob();
-            const blobUrl = URL.createObjectURL(blob);
+            e.preventDefault();
 
-            // show PDF in the new tab
-            newTab.location.href = blobUrl;
+            const url = link.href;
+            const filename = link.getAttribute('download') || 'Abhijith_Reddy_CV.pdf';
 
-            // trigger download
-            const a = document.createElement("a");
-            a.href = blobUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            // Open a blank tab early — may be blocked (newTab === null)
+            const newTab = window.open('', '_blank');
 
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
-        } catch (err) {
-            console.error("Download failed:", err);
+            try {
+                const resp = await fetch(url, { cache: 'no-store' });
+                if (!resp.ok) throw new Error(`Network response not ok: ${resp.status}`);
 
-            // fallback to normal behavior
-            newTab.location.href = url;
-        }
+                const blob = await resp.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                // Show PDF in new tab (if the blank tab was blocked, open a new one)
+                if (newTab && !newTab.closed) {
+                    try { newTab.location.href = blobUrl; }
+                    catch (err) { window.open(blobUrl, '_blank'); } // fallback
+                } else {
+                    window.open(blobUrl, '_blank');
+                }
+
+                // Trigger download (works because we have the blob URL)
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                // cleanup later
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+            } catch (err) {
+                console.error('CV fetch/download failed:', err);
+
+                // If fetch fails, open original URL in a new tab (do not navigate away)
+                if (newTab && !newTab.closed) {
+                    try { newTab.location.href = url; }
+                    catch (err2) { window.open(url, '_blank'); }
+                } else {
+                    window.open(url, '_blank');
+                }
+
+                // Also try native download (may be ignored cross-origin)
+                try {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } catch (e) {
+                    // nothing else to do
+                }
+            }
+        });
     });
 }
 
+// call it
 bindCVDownload();
+
 
 // Console message
 console.log('%c👋 Hello, Developer!', 'font-size: 20px; font-weight: bold; color: #6366f1;');
