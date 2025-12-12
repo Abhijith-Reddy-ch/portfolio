@@ -5,6 +5,10 @@
 // Smooth scroll for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
+        // ignore Download CV and external links
+        const href = this.getAttribute("href");
+        if (href && !href.startsWith("#")) return;
+
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
@@ -23,7 +27,6 @@ let lastScroll = 0;
 window.addEventListener('scroll', () => {
     const currentScroll = window.pageYOffset;
 
-    // Add scrolled class for styling
     if (currentScroll > 50) {
         navbar.classList.add('scrolled');
     } else {
@@ -72,7 +75,6 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe all elements with reveal class
 document.querySelectorAll('.reveal').forEach(element => {
     observer.observe(element);
 });
@@ -92,7 +94,6 @@ function createParticles() {
         const particle = document.createElement('div');
         particle.className = 'particle';
 
-        // Random positioning and sizing
         const size = Math.random() * 20 + 5;
         const posX = Math.random() * 100;
         const posY = Math.random() * 100;
@@ -102,7 +103,7 @@ function createParticles() {
         particle.style.cssText = `
             width: ${size}px;
             height: ${size}px;
-            left: ${posX}%;
+            left: ${posX}% ;
             top: ${posY}%;
             animation-duration: ${duration}s;
             animation-delay: -${delay}s;
@@ -117,28 +118,23 @@ function initSprayEffect() {
     const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#3b82f6'];
 
     document.addEventListener('mousemove', (e) => {
-        // Create multiple particles for a "spray" feel
         for (let i = 0; i < 2; i++) {
             const particle = document.createElement('div');
             particle.classList.add('spray-particle');
 
-            // Random color
             const color = colors[Math.floor(Math.random() * colors.length)];
             particle.style.background = color;
 
-            // Set initial position
             particle.style.left = `${e.clientX}px`;
             particle.style.top = `${e.clientY}px`;
 
             document.body.appendChild(particle);
 
-            // Randomize movement
             const angle = Math.random() * Math.PI * 2;
             const velocity = Math.random() * 60 + 20;
             const tx = Math.cos(angle) * velocity;
             const ty = Math.sin(angle) * velocity;
 
-            // Animate
             const animation = particle.animate([
                 { transform: 'translate(0, 0) scale(1)', opacity: 0.8 },
                 { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
@@ -169,9 +165,7 @@ function initRippleEffect() {
 
             this.appendChild(ripple);
 
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
+            setTimeout(() => ripple.remove(), 600);
         });
     });
 }
@@ -198,31 +192,23 @@ projectCards.forEach(card => {
         card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
     });
 
-    // Smooth transition
     card.style.transition = 'transform 0.1s ease';
 });
 
-// 5. Skill Item Bounce Animation
+// 5. Skill Bounce Animation
 const skillItems = document.querySelectorAll('.skill-item');
 skillItems.forEach((item, index) => {
     item.style.animationDelay = `${index * 0.1}s`;
-
-    item.addEventListener('mouseenter', () => {
-        item.style.transform = 'translateY(-10px)';
-    });
-
-    item.addEventListener('mouseleave', () => {
-        item.style.transform = 'translateY(0)';
-    });
+    item.addEventListener('mouseenter', () => item.style.transform = 'translateY(-10px)');
+    item.addEventListener('mouseleave', () => item.style.transform = 'translateY(0)');
 });
 
-// Initialize all features
+// Initialize effects
 window.addEventListener('load', () => {
     createParticles();
     initSprayEffect();
     initRippleEffect();
 
-    // Fade in body
     document.body.style.opacity = '0';
     setTimeout(() => {
         document.body.style.transition = 'opacity 0.5s ease';
@@ -230,7 +216,7 @@ window.addEventListener('load', () => {
     }, 100);
 });
 
-// Smooth scroll to top button
+// Scroll-To-Top Button
 const scrollToTopBtn = document.createElement('button');
 scrollToTopBtn.innerHTML = '↑';
 scrollToTopBtn.className = 'scroll-top-btn';
@@ -251,7 +237,50 @@ scrollToTopBtn.addEventListener('click', () => {
     });
 });
 
+// ================================================
+// DOWNLOAD CV — open in new tab + download
+// ================================================
+function bindCVDownload() {
+    const link = document.querySelector('a[href="assets/cv.pdf"]');
+    if (!link) return;
+
+    link.addEventListener('click', async function (e) {
+        e.preventDefault();
+
+        const url = this.href;
+        const filename = "Abhijith_Reddy_CV.pdf";
+
+        // open a blank tab early (prevents popup blocking)
+        const newTab = window.open('', '_blank');
+
+        try {
+            const resp = await fetch(url, { cache: "no-store" });
+            const blob = await resp.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            // show PDF in the new tab
+            newTab.location.href = blobUrl;
+
+            // trigger download
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+        } catch (err) {
+            console.error("Download failed:", err);
+
+            // fallback to normal behavior
+            newTab.location.href = url;
+        }
+    });
+}
+
+bindCVDownload();
+
 // Console message
 console.log('%c👋 Hello, Developer!', 'font-size: 20px; font-weight: bold; color: #6366f1;');
 console.log('%cBuilt with ❤️ using vanilla HTML, CSS, and JavaScript', 'font-size: 12px; color: #a1a1aa;');
-
