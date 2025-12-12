@@ -236,88 +236,154 @@ scrollToTopBtn.addEventListener('click', () => {
         behavior: 'smooth'
     });
 });
+// ================================================
+// DOWNLOAD CV — robust open-in-new-tab + download
+// ================================================
 
-// ================================================
-// DOWNLOAD CV — open in new tab + download
-// ================================================
-// ================================================
-// helper used by click handlers: opens a tab and forces download via blob
+/**
+ * openAndDownload:
+ * - opens a blank tab synchronously (best chance to avoid popup blockers)
+ * - tries to fetch the PDF and create a blob URL
+ * - points the opened tab to the blob URL (user sees PDF)
+ * - triggers a hidden <a download> click to save the file with the desired filename
+ * - falls back gracefully on errors
+ */
 async function openAndDownload(url, filename = 'Abhijith_Reddy_CV.pdf') {
+    console.log('[CV] openAndDownload start', { url, filename });
+
     // open blank tab early to avoid popup blockers
-    const newTab = window.open('', '_blank');
+    let newTab = null;
+    try {
+        newTab = window.open('', '_blank');
+        if (!newTab) console.warn('[CV] blank tab blocked or returned null');
+    } catch (err) {
+        console.warn('[CV] window.open threw', err);
+    }
 
     try {
         const resp = await fetch(url, { cache: 'no-store' });
-        if (!resp.ok) throw new Error(`Network response not ok: ${resp.status}`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
         const blob = await resp.blob();
         const blobUrl = URL.createObjectURL(blob);
+        console.log('[CV] fetched blob, blobUrl created');
 
-        // show PDF in the new tab (fallbacks handled)
+        // Try to show PDF in the newTab; if newTab blocked, open blobUrl in a new tab
         if (newTab && !newTab.closed) {
-            try { newTab.location.href = blobUrl; }
-            catch (err) { window.open(blobUrl, '_blank'); }
+            try {
+                newTab.location.href = blobUrl;
+                console.log('[CV] navigated blank tab to blobUrl');
+            } catch (err) {
+                console.warn('[CV] could not set newTab.location — opening blobUrl in new tab', err);
+                window.open(blobUrl, '_blank');
+            }
         } else {
             window.open(blobUrl, '_blank');
+            console.log('[CV] opened blobUrl in new tab (no blank tab available)');
         }
 
-        // trigger download (controlled filename)
+        // Trigger download using the blob URL
         const a = document.createElement('a');
         a.href = blobUrl;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
+        console.log('[CV] download triggered via blob URL');
 
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 15_000);
+        // cleanup
+        setTimeout(() => {
+            try { URL.revokeObjectURL(blobUrl); console.log('[CV] revoked blob url'); }
+            catch (e) { /* ignore */ }
+        }, 15000);
+        return;
     } catch (err) {
-        console.error('openAndDownload failed:', err);
+        console.error('[CV] fetch -> blob failed:', err);
+    }
 
-        // fallback: open original url in new tab
+    // If fetch fails, open original url in a new tab (but make sure we don't navigate current tab)
+    try {
         if (newTab && !newTab.closed) {
-            try { newTab.location.href = url; }
-            catch (e) { window.open(url, '_blank'); }
+            newTab.location.href = url;
+            console.log('[CV] opened original url in blank tab as fallback');
         } else {
             window.open(url, '_blank');
+            console.log('[CV] opened original url in new tab as fallback');
         }
+    } catch (err) {
+        console.error('[CV] fallback open failed:', err);
+    }
 
-        // try native download (may be ignored cross-origin)
-        try {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        } catch (e) { /* ignore */ }
+    // Try native download as a last-ditch attempt (may be ignored for cross-origin)
+    try {
+        const a2 = document.createElement('a');
+        a2.href = url;
+        a2.download = filename;
+        document.body.appendChild(a2);
+        a2.click();
+        a2.remove();
+        console.log('[CV] attempted native download fallback');
+    } catch (err) {
+        console.warn('[CV] native download fallback failed or ignored by browser', err);
     }
 }
 
-// bind to anchors that look like CV links or have a download attr
+/**
+ * bindCVDownload:
+ * Finds anchors that point to CV PDF (case-insensitive) or have download attribute
+ * and binds click handler which calls openAndDownload.
+ */
 function bindCVDownload() {
-    const links = Array.from(document.querySelectorAll('a')).filter(a => {
-        const href = (a.getAttribute('href') || '').toLowerCase();
-        return a.hasAttribute('download') || href.endsWith('cv.pdf') || href.endsWith('cv_.pdf') || href.endsWith('cv-2025.pdf') || href.endsWith('cv-') || href.includes('cv');
+    // Use getAttribute('href') to check relative paths reliably and avoid absolute URL surprises
+    const anchors = Array.from(document.querySelectorAll('a'));
+    const links = anchors.filter(a => {
+        const hrefAttr = (a.getAttribute('href') || '').toLowerCase();
+        const hasDownload = a.hasAttribute('download');
+        const looksLikeCV = hrefAttr.endsWith('cv.pdf') || hrefAttr.endsWith('curriculum-vitae.pdf') || hrefAttr.includes('/cv') || hrefAttr.includes('cv');
+        return hasDownload || looksLikeCV;
     });
 
+    if (!links.length) {
+        console.log('[CV] no CV-like links found to bind');
+        return;
+    }
+
     links.forEach(link => {
-        if (link.dataset.cvBound) return;
+        if (link.dataset.cvBound) return; // avoid double-binding
         link.dataset.cvBound = 'true';
 
+        // ensure the anchor won't accidentally navigate current tab later
+        link.setAttribute('role', 'button');
+
         link.addEventListener('click', function (e) {
-            // let ctrl/cmd/middle click behave naturally
-            if (e.ctrlKey || e.metaKey || e.button === 1) return;
+            // allow user modifiers (open in new tab) to behave naturally
+            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                console.log('[CV] user used modifier key — letting browser handle it normally');
+                return;
+            }
 
             e.preventDefault();
-            const url = link.href;
+
+            // use getAttribute to keep relative path (works with local assets)
+            const hrefAttr = link.getAttribute('href');
+            const url = new URL(hrefAttr, window.location.href).toString();
             const filename = link.getAttribute('download') || 'Abhijith_Reddy_CV.pdf';
+
+            console.log('[CV] click intercepted — starting open+download', { url, filename });
             openAndDownload(url, filename);
         });
     });
+
+    console.log('[CV] bindCVDownload attached to', links.length, 'link(s)');
 }
 
-// call after load or at bottom of file
-window.addEventListener('load', bindCVDownload);
+// bind on DOMContentLoaded (safe even if script is at end)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindCVDownload);
+} else {
+    bindCVDownload();
+}
+
 
 
 
