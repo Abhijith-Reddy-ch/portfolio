@@ -328,105 +328,31 @@ a {
 }
 
 /* ==========================================
-   ENHANCED PRIMARY BUTTON (drop-in replacement)
+   BUTTONS
    ========================================== */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  padding: 0.9rem 2.2rem;
+.btn {
+  padding: 1rem 2.5rem;
   font-size: var(--font-size-sm);
-  font-weight: 700;
-  border-radius: calc(var(--radius-lg) - 0.25rem);
+  font-weight: 600;
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: transform var(--transition-base), box-shadow var(--transition-base), background 0.35s ease, border-color 0.35s ease;
+  transition: all var(--transition-base);
+  border: none;
+  display: inline-block;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.14);
-
-  /* Base look — soft glass with subtle gradient accent */
-  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
-  color: var(--color-text-primary);
-  backdrop-filter: var(--glass-blur);
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(37, 99, 235, 0.06);
 }
 
-/* gradient-filled primary variation — use .btn-primary.fill or swap the backgrounds */
-.btn-primary.fill {
+.btn-primary {
   background: var(--gradient-primary);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.18), var(--shadow-md);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
 }
 
-/* subtle sheen using pseudo-element */
-.btn-primary::after {
-  content: "";
-  position: absolute;
-  top: -40%;
-  left: -30%;
-  width: 60%;
-  height: 180%;
-  transform: rotate(-25deg) translateX(-30%);
-  background: linear-gradient(120deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.0) 60%);
-  opacity: 0;
-  transition: opacity 0.4s ease, transform 0.6s ease;
-  pointer-events: none;
-}
-
-/* hover — more vivid, lift and sheen reveal */
 .btn-primary:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.18), 0 6px 18px rgba(15, 23, 42, 0.08);
-  border-color: rgba(255,255,255,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(99, 102, 241, 0.6);
 }
-
-.btn-primary.fill:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 20px 50px rgba(37, 99, 235, 0.22);
-}
-
-.btn-primary:hover::after {
-  opacity: 0.6;
-  transform: rotate(-25deg) translateX(20%);
-}
-
-/* focus for accessibility */
-.btn-primary:focus {
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(37,99,235,0.12), 0 10px 30px rgba(37, 99, 235, 0.12);
-}
-
-/* active (pressed) */
-.btn-primary:active {
-  transform: translateY(-1px) scale(0.995);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
-}
-
-/* disabled */
-.btn-primary[disabled],
-.btn-primary.disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* optional icon spacing helper if you include icons inside the button */
-.btn-primary .btn-icon {
-  display: inline-flex;
-  width: 1.2em;
-  height: 1.2em;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.05rem;
-}
-
-/* small / large size variants */
-.btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
-.btn-lg { padding: 1.2rem 3rem; font-size: 1.05rem; }
-
 
 /* ==========================================
    CARDS & GLASSMORPHISM
